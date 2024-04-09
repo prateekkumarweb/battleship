@@ -1,0 +1,16 @@
+# fly.toml app configuration file generated for battleship-game on 2024-04-09T16:04:58+05:30
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'battleship-game'
+primary_region = 'sin'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[http_service]
+  internal_port = 8080
+
+[[vm]]
+  size = 'shared-cpu-1x'

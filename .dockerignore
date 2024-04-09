@@ -2,3 +2,4 @@
 game/app.dist.*
 Dockerfile
 README.md
+fly.toml
