@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
         games: Mutex::new(Vec::new()),
     };
     let app = router().with_state(Arc::new(app_state));
-    let address = "127.0.0.1:3000";
+    let address = "0.0.0.0:3000";
     tracing::info!("Listening on http://{}", address);
     let listener = tokio::net::TcpListener::bind(address).await?;
     axum::serve(listener, app)

@@ -1,0 +1,4 @@
+/target
+game/app.dist.*
+Dockerfile
+README.md
