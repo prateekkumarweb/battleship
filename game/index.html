@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Battleship Game</title>
+    <link rel="stylesheet" href="/game/app.dist.css" />
+    <style>
+      [x-cloak] {
+        display: none;
+      }
+    </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body class="bg-gray-200">
+    <div class="container mx-auto px-4" x-data="chat" x-cloak>
+      <h1 class="text-2xl font-bold my-1">Battleship Game</h1>
+      <div x-show="id !== null">
+        <div class="flex justify-between">
+          <!-- User's board -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="text-xl font-bold">Your Board</h2>
+              <template x-if="id">
+                <div class="text-gray-600">
+                  <strong>ID:</strong>
+                  <span x-text="id"></span>
+                </div>
+              </template>
+            </div>
+            <div class="flex flex-col">
+              <template x-for="rowIndex in 10">
+                <div class="flex flex-row">
+                  <template x-for="cellIndex in 10">
+                    <div
+                      class="w-10 h-10 bg-blue-500 border border-black flex relative"
+                      style="margin: -1px"
+                      x-data="{rowIndex: rowIndex-1, cellIndex: cellIndex-1}"
+                    >
+                      <template x-if="userBoard[rowIndex][cellIndex].miss">
+                        <div class="w-full h-full absolute flex">
+                          <span class="m-auto">╳</span>
+                        </div>
+                      </template>
+                      <template x-if="userBoard[rowIndex][cellIndex].hit">
+                        <div class="w-full h-full absolute flex">
+                          <span class="m-auto">🔴</span>
+                        </div>
+                      </template>
+                      <template x-if="hasShip(cellIndex, rowIndex, userBoard)">
+                        <div
+                          class="bg-black grow text-white"
+                          :class="{'mt-1': showMarginTop(cellIndex, rowIndex, userBoard), 'mb-1': showMarginBottom(cellIndex, rowIndex, userBoard), 'ml-1': showMarginLeft(cellIndex, rowIndex, userBoard), 'mr-1': showMarginRight(cellIndex, rowIndex, userBoard)}"
+                        ></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <template x-if="showPlaceShips">
+            <div class="my-auto flex flex-col gap-2">
+              <button
+                class="bg-gray-500 text-white px-4 py-2 rounded"
+                @click="generateRandomShips"
+              >
+                Randomise ships
+              </button>
+              <button
+                class="bg-gray-500 text-white px-4 py-2 rounded"
+                @click="startGame"
+              >
+                Start
+              </button>
+            </div>
+          </template>
+          <template x-if="!showPlaceShips">
+            <div class="my-auto flex flex-col gap-2">
+              <template x-if="myTurn && !youWin && !oppWin"
+                ><p>Your Turn</p></template
+              >
+              <template x-if="!myTurn && !youWin && !oppWin"
+                ><p>Opponent's Turn</p></template
+              >
+              <template x-if="youWin"><p>You Won</p></template>
+              <template x-if="oppWin"><p>Opponent Won</p></template>
+            </div>
+          </template>
+
+          <!-- Opponent's board -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="text-xl font-bold">Opponent's Board</h2>
+              <template x-if="opponentId">
+                <div class="text-gray-600">
+                  <strong>ID:</strong>
+                  <span x-text="opponentId"></span>
+                </div>
+              </template>
+            </div>
+            <div class="flex flex-col">
+              <template x-for="rowIndex in 10">
+                <div class="flex flex-row">
+                  <template x-for="cellIndex in 10">
+                    <div
+                      class="w-10 h-10 bg-blue-500 border border-black flex relative"
+                      style="margin: -1px"
+                      x-data="{rowIndex: rowIndex-1, cellIndex: cellIndex-1}"
+                      @click="move(cellIndex, rowIndex)"
+                    >
+                      <template x-if="opponentBoard[rowIndex][cellIndex].miss">
+                        <div class="w-full h-full absolute flex">
+                          <span class="m-auto">╳</span>
+                        </div>
+                      </template>
+                      <template x-if="opponentBoard[rowIndex][cellIndex].hit">
+                        <div class="w-full h-full absolute flex">
+                          <span class="m-auto">🔴</span>
+                        </div>
+                      </template>
+                      <template
+                        x-if="hasShip(cellIndex, rowIndex, opponentBoard)"
+                      >
+                        <div
+                          class="bg-black grow text-white"
+                          :class="{'mt-1': showMarginTop(cellIndex, rowIndex, opponentBoard), 'mb-1': showMarginBottom(cellIndex, rowIndex, opponentBoard), 'ml-1': showMarginLeft(cellIndex, rowIndex, opponentBoard), 'mr-1': showMarginRight(cellIndex, rowIndex, opponentBoard)}"
+                        ></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="my-1">
+          <h2 class="text-xl font-bold my-2">Chat</h2>
+          <div class="bg-white p-2 h-32 overflow-y-scroll mb-2 text-sm">
+            <template x-for="(message, index) in messages" :key="index">
+              <div>
+                <template x-if="message.type === 'log'">
+                  <p class="text-gray-600" x-text="message.data"></p>
+                </template>
+                <template x-if="message.type === 'error'">
+                  <p class="text-red-600" x-text="message.data"></p>
+                </template>
+                <template x-if="message.type === 'chat'">
+                  <p>
+                    <strong x-text="message.from+':'"></strong>
+                    <span x-text="message.data"></span>
+                  </p>
+                </template>
+              </div>
+            </template>
+          </div>
+          <div class="flex">
+            <input
+              type="text"
+              class="w-full p-2 border rounded h-10"
+              placeholder="Type your message..."
+              x-model="newMessage"
+              @keydown.enter="sendMessage"
+            />
+            <button
+              @click="sendMessage"
+              class="bg-blue-500 text-white px-4 py-2 rounded ml-2 h-10"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/game/app.js"></script>
+  </body>
+</html>
