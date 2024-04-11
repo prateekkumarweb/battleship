@@ -12,7 +12,7 @@ use anyhow::Context;
 use axum::{
     extract::{ws::WebSocket, State, WebSocketUpgrade},
     http::header,
-    response::Response,
+    response::{Redirect, Response},
     routing::get,
     Router,
 };
@@ -97,7 +97,7 @@ fn router() -> Router<Arc<AppState>> {
         .compression();
 
     Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
+        .route("/", get(|| async { Redirect::temporary("/game/") }))
         .nest_service("/game", ServeDir::new("game"))
         .route("/ws", get(ws_handler))
         .layer(middleware)
