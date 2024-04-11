@@ -1,13 +1,15 @@
+use serde::{Deserialize, Serialize};
 use tokio::{sync::mpsc, task::JoinHandle};
 
 use crate::{
-    message::{PlayerMsg, Ship, SystemMsg},
+    message::{PlayerMsg, SystemMsg},
     player::Player,
 };
 
 #[derive(Debug)]
 pub struct Game {
-    _task: JoinHandle<()>,
+    #[allow(dead_code)]
+    task: JoinHandle<()>,
 }
 
 impl Game {
@@ -22,10 +24,18 @@ impl Game {
             player_state: [PlayerGameState::default(), PlayerGameState::default()],
         };
         let task = actor.run();
-        Self { _task: task }
+        Self { task }
     }
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy)]
+pub struct Ship {
+    pub x: u8,
+    pub y: u8,
+    pub size: u8,
+    pub vertical: bool,
+    pub sunk: bool,
+}
 struct GameActor {
     players: [Player; 2],
     rxs: (mpsc::Receiver<PlayerMsg>, mpsc::Receiver<PlayerMsg>),

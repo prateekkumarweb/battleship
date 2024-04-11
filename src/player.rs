@@ -26,7 +26,8 @@ enum PlayerState {
 pub struct Player {
     id: String,
     state: Arc<Mutex<PlayerState>>,
-    _task: JoinHandle<()>,
+    #[allow(dead_code)]
+    task: JoinHandle<()>,
     sender: mpsc::Sender<SystemMsg>,
     close_tx: oneshot::Sender<()>,
     is_closed: Arc<RwLock<bool>>,
@@ -53,7 +54,7 @@ impl Player {
         Self {
             id,
             state,
-            _task: task,
+            task,
             sender,
             close_tx,
             is_closed,
