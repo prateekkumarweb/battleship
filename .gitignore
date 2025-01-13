@@ -1,2 +1,3 @@
 /target
 game/app.dist.*
+.DS_Store
